@@ -12,9 +12,6 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.License;
 
-// Importa la clase que está fallando
-import org.springdoc.core.configuration.SpringDocHateoasConfiguration;
-
 // 2. Añade esta anotación para configurar tu API
 @OpenAPIDefinition(
     info = @Info(
