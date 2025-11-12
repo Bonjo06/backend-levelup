@@ -24,6 +24,9 @@ public class Inventario {
     private String itemImageLink;
 
     @Column(nullable = false)
+    private String itemCategory;
+
+    @Column(nullable = false)
     private String itemDescription;
 
     @Column(nullable = false)
