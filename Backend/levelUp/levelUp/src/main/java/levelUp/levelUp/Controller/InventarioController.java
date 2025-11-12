@@ -15,6 +15,7 @@ import levelUp.levelUp.Model.Inventario;
 import levelUp.levelUp.Service.InventarioService;
 import levelUp.levelUp.Assembler.InventarioModelAssembler;
 
+
 @RestController
 @RequestMapping("/api/inventario")
 public class InventarioController {
