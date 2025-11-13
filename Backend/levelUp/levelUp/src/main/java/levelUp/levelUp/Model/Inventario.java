@@ -26,7 +26,7 @@ public class Inventario {
     @Column(nullable = false)
     private String itemCategory;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String itemDescription;
 
     @Column(nullable = false)
