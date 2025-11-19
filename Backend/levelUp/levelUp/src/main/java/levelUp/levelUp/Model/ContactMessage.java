@@ -16,6 +16,9 @@ public class ContactMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne
+	private User user;
+
     @Column(nullable=false)
     private String name;
 
@@ -29,7 +32,5 @@ public class ContactMessage {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
-
-    private boolean handled = false;
 
 }

@@ -34,8 +34,6 @@ public class PurchaseOrder {
 	@Enumerated(EnumType.STRING)
 	private OrderStatus status = OrderStatus.PENDING;
 
-	private String shippingAddress;
-
 	@CreationTimestamp
 	private LocalDateTime createdAt;
 

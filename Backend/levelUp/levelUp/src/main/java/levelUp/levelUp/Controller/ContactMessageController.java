@@ -16,7 +16,7 @@ import levelUp.levelUp.Service.ContactMessageService;
 import levelUp.levelUp.Assembler.ContactMessageModelAssembler;
 
 @RestController
-@RequestMapping("/contact-messages")
+@RequestMapping("/api/contact-messages")
 public class ContactMessageController {
 
     @Autowired
