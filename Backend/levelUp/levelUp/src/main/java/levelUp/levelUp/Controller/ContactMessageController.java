@@ -48,9 +48,13 @@ public class ContactMessageController {
 
     //Método POST para crear un nuevo mensaje de contacto
     @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @Operation(summary = "Crear un nuevo mensaje de contacto", description = "Crea un nuevo mensaje de contacto en la bd")
-    public ResponseEntity<EntityModel<ContactMessage>> createContactMessage(@RequestBody ContactMessage contactMessage){
-        ContactMessage newContactMessage =  contactMessageService.save(contactMessage);
+    @Operation(summary = "Crear un nuevo mensaje de contacto", description = "Crea un nuevo mensaje de contacto en la bd y lo asocia con un usuario si está logueado")
+    public ResponseEntity<EntityModel<ContactMessage>> createContactMessage(
+            @RequestBody ContactMessage contactMessage,
+            @RequestParam(required = false) String userEmail){
+        
+        
+        ContactMessage newContactMessage = contactMessageService.save(contactMessage, userEmail);
         return ResponseEntity
                .created(linkTo(methodOn(ContactMessageController.class).getContactMessageById(newContactMessage.getId())).toUri())
                .body(assembler.toModel(newContactMessage));
@@ -61,7 +65,7 @@ public class ContactMessageController {
     @Operation(summary = "Actualizar un mensaje de contacto", description = "Actualiza los datos de un mensaje de contacto existente en la bd")
     public ResponseEntity<EntityModel<ContactMessage>> updateContactMessage(@PathVariable Long id, @RequestBody ContactMessage contactMessage){
         contactMessage.setId(id);
-        ContactMessage updatedContactMessage = contactMessageService.save(contactMessage);
+        ContactMessage updatedContactMessage = contactMessageService.save(contactMessage, null);
         return ResponseEntity
                .ok(assembler.toModel(updatedContactMessage));
     }

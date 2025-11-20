@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import levelUp.levelUp.Dto.LoginRequest;
@@ -11,12 +12,19 @@ import levelUp.levelUp.Dto.PasswordResetRequest;
 import levelUp.levelUp.Dto.RegisterRequest;
 import levelUp.levelUp.Model.User;
 import levelUp.levelUp.Repository.UserRepository;
+import levelUp.levelUp.Security.JwtUtil;
 
 @Service
 public class AuthService {
     
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /*
      * LOGICA PARA LOGIN
@@ -29,13 +37,33 @@ public class AuthService {
             throw new RuntimeException("Usuario no encontrado");
         }
 
-        if (!user.getPassword().equals(loginRequest.getPassword())) {
+        // Verificar contraseña - soporta tanto BCrypt como texto plano (migración)
+        boolean passwordMatches;
+        if (user.getPassword().startsWith("$2a$") || user.getPassword().startsWith("$2b$")) {
+            // Contraseña encriptada con BCrypt
+            passwordMatches = passwordEncoder.matches(loginRequest.getPassword(), user.getPassword());
+        } else {
+            // Contraseña en texto plano (sistema antiguo)
+            passwordMatches = user.getPassword().equals(loginRequest.getPassword());
+            
+            // Actualizar a BCrypt en el siguiente login
+            if (passwordMatches) {
+                user.setPassword(passwordEncoder.encode(loginRequest.getPassword()));
+                userRepository.save(user);
+            }
+        }
+
+        if (!passwordMatches) {
             throw new RuntimeException("Contraseña incorrecta");
         }
+
+        // Generar token JWT
+        String token = jwtUtil.generateToken(user.getEmail());
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "Inicio de sesión exitoso");
+        response.put("token", token);
         response.put("user", Map.of(
             "email", user.getEmail(),
             "name", user.getName()
@@ -54,13 +82,18 @@ public class AuthService {
         User user = new User();
         user.setName(registerRequest.getName());
         user.setEmail(registerRequest.getEmail());
-        user.setPassword(registerRequest.getPassword());
+        // Encriptar contraseña con BCrypt
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
         User savedUser = userRepository.save(user);
+
+        // Generar token JWT para el nuevo usuario
+        String token = jwtUtil.generateToken(savedUser.getEmail());
 
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "Registro exitoso");
+        response.put("token", token);
         response.put("user", Map.of(
             "email", savedUser.getEmail(),
             "name", savedUser.getName()
@@ -79,7 +112,8 @@ public class AuthService {
             throw new RuntimeException("Usuario no encontrado");
         }
 
-        user.setPassword(passwordReset.getNewPassword());
+        // Encriptar la nueva contraseña con BCrypt
+        user.setPassword(passwordEncoder.encode(passwordReset.getNewPassword()));
         userRepository.save(user);
 
         Map<String, Object> response = new HashMap<>();

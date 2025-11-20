@@ -1,22 +1,23 @@
 package levelUp.levelUp.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
-import java.util.List;
-import java.util.stream.Collectors;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
+
+import java.util.HashMap;
+import java.util.Map;
+
 
 import levelUp.levelUp.Model.Cart;
 import levelUp.levelUp.Service.CartService;
 import levelUp.levelUp.Assembler.CartModelAssembler;
+import levelUp.levelUp.Dto.AddToCartRequest;
 
 @RestController
-@RequestMapping("/carts")
+@RequestMapping("api/cart")
 public class CartController {
 
     @Autowired
@@ -25,53 +26,91 @@ public class CartController {
     @Autowired
     private CartModelAssembler assembler;
 
-    //Método GET para obtener todos los carritos
+    //Método GET para obtener carrito del usuario
     @GetMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @Operation(summary = "Obtener todos los carritos", description = "Obtiene todos los carritos registrados en la bd")
-    public CollectionModel<EntityModel<Cart>> getAllCarts(){
-        List<EntityModel<Cart>> carts = cartService.findAll().stream()
-        .map(assembler::toModel)
-        .collect(Collectors.toList());
-
-        return CollectionModel.of(carts,
-            linkTo(methodOn(CartController.class).getAllCarts()).withSelfRel()
-        );
+    @Operation(summary = "Obtener carrito del usuario", description = "Obtiene el carrito de un usuario por su email")
+    public ResponseEntity<?> getCartByUser(Authentication authentication) {
+        try {
+            String userEmail = authentication.getName();
+            Cart cart = cartService.getOrCreateCartForUser(userEmail);
+            return ResponseEntity.ok(assembler.toModel(cart));
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error al obtener carrito: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 
-    //Método GET para obtener carrito por id
-    @GetMapping(value="/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @Operation(summary= "Obtener carrito por ID", description = "Obtiene un carrito registrado en la bd mediante su ID")
-    public EntityModel<Cart> getCartById(@PathVariable Long id){
-        Cart cart = cartService.findById(id);
-        return assembler.toModel(cart);
+    //Método POST para agregar item al carrito
+    @PostMapping(value = "/add", produces = MediaTypes.HAL_JSON_VALUE)
+    @Operation(summary = "Agregar item al carrito", description = "Agrega un producto al carrito del usuario")
+    public ResponseEntity<?> addItemToCart(
+            Authentication authentication,
+            @RequestBody AddToCartRequest request) {
+        try {
+            String userEmail = authentication.getName();
+            Cart cart = cartService.addItemToCart(userEmail, request.getProductId(), request.getQuantity());
+            return ResponseEntity.ok(assembler.toModel(cart));
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error al agregar item: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 
-    //Método POST para crear un nuevo carrito
-    @PostMapping(produces = MediaTypes.HAL_JSON_VALUE)
-    @Operation(summary = "Crear un nuevo carrito", description = "Crea un nuevo carrito en la bd")
-    public ResponseEntity<EntityModel<Cart>> createCart(@RequestBody Cart cart){
-        Cart newCart =  cartService.save(cart);
-        return ResponseEntity
-               .created(linkTo(methodOn(CartController.class).getCartById(newCart.getId())).toUri())
-               .body(assembler.toModel(newCart));
+    //Método PATCH para actualizar cantidad de item
+    @PatchMapping(value = "/update", produces = MediaTypes.HAL_JSON_VALUE)
+    @Operation(summary = "Actualizar cantidad de item", description = "Actualiza la cantidad de un producto en el carrito")
+    public ResponseEntity<?> updateItemQuantity(
+            Authentication authentication,
+            @RequestParam Long productId,
+            @RequestParam int quantity) {
+        try {
+            String userEmail = authentication.getName();
+            Cart cart = cartService.updateItemQuantity(userEmail, productId, quantity);
+            return ResponseEntity.ok(assembler.toModel(cart));
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error al actualizar cantidad: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 
-    //Método PUT para actualizar un carrito existente
-    @PutMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @Operation(summary = "Actualizar un carrito", description = "Actualiza los datos de un carrito existente en la bd")
-    public ResponseEntity<EntityModel<Cart>> updateCart(@PathVariable Long id, @RequestBody Cart cart){
-        cart.setId(id);
-        Cart updatedCart = cartService.save(cart);
-        return ResponseEntity
-               .ok(assembler.toModel(updatedCart));
+    //Método DELETE para remover item del carrito
+    @DeleteMapping(value = "/remove", produces = MediaTypes.HAL_JSON_VALUE)
+    @Operation(summary = "Remover item del carrito", description = "Elimina un producto del carrito")
+    public ResponseEntity<?> removeItemFromCart(
+            Authentication authentication,
+            @RequestParam Long productId) {
+        try {
+            String userEmail = authentication.getName();
+            Cart cart = cartService.removeItemFromCart(userEmail, productId);
+            return ResponseEntity.ok(assembler.toModel(cart));
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error al remover item: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 
-    //Método DELETE para eliminar un carrito por id
-    @DeleteMapping(value = "/{id}", produces = MediaTypes.HAL_JSON_VALUE)
-    @Operation(summary = "Eliminar un carrito", description = "Elimina un carrito existente en la bd mediante su ID")
-    public ResponseEntity<?> deleteCart(@PathVariable Long id){
-        cartService.delete(id);
-        return ResponseEntity.noContent().build();
+    //Método DELETE para vaciar el carrito
+    @DeleteMapping(value = "/clear", produces = MediaTypes.HAL_JSON_VALUE)
+    @Operation(summary = "Vaciar carrito", description = "Elimina todos los items del carrito del usuario")
+    public ResponseEntity<?> clearCart(Authentication authentication) {
+        try {
+            String userEmail = authentication.getName();
+            Cart cart = cartService.clearCart(userEmail);
+            return ResponseEntity.ok(assembler.toModel(cart));
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error al vaciar carrito: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
     }
 
 }

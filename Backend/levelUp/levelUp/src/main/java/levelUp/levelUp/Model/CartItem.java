@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "cart_items")
 @Data
@@ -31,6 +34,7 @@ public class CartItem {
     private int quantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     private Cart cart;
 
     public BigDecimal getSubtotal() {

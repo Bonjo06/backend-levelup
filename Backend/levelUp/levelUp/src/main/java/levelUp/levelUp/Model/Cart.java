@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ public class Cart {
     private User user; // optional: null for guests if you choose to persist guest carts
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<CartItem> items = new ArrayList<>();
 
     @CreationTimestamp

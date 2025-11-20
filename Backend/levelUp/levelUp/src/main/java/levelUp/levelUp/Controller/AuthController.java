@@ -23,12 +23,13 @@ public class AuthController {
     private AuthService authService;
     
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
-            Map<String, Object> response = authService.login(loginRequest);
+            Map<String, Object> response = authService.login(request);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
             error.put("message", e.getMessage());
             return ResponseEntity.status(401).body(error);
         }

@@ -14,10 +14,11 @@ public class CartModelAssembler implements RepresentationModelAssembler<Cart, En
     
     @Override
     public EntityModel<Cart> toModel(Cart cart){
-
+        // Retornar el cart con links básicos a los endpoints del carrito
         return EntityModel.of(cart,
-        linkTo(methodOn(CartController.class).getCartById(cart.getId())).withSelfRel(),
-        linkTo(methodOn(CartController.class).getAllCarts()).withRel("carts")
+            linkTo(methodOn(CartController.class).getCartByUser(null)).withSelfRel(),
+            linkTo(methodOn(CartController.class).addItemToCart(null, null)).withRel("add-item"),
+            linkTo(methodOn(CartController.class).clearCart(null)).withRel("clear")
         );
     }
 
