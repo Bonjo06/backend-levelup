@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "order_items")
@@ -30,6 +31,7 @@ public class OrderItem {
     private int quantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonBackReference
     private PurchaseOrder purchaseOrder;
 
     public BigDecimal getSubtotal() {

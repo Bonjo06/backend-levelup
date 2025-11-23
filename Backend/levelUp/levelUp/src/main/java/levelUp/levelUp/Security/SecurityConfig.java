@@ -31,15 +31,26 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(auth -> auth
+                // Allow OpenAPI / Swagger endpoints and static resources
+                .requestMatchers(
+                    "/v3/api-docs", 
+                    "/v3/api-docs/**",
+                    "/swagger-ui.html",
+                    "/swagger-ui/**",
+                    "/doc/**",
+                    "/swagger-resources/**",
+                    "/webjars/**"
+                ).permitAll()
+
                 // Endpoints públicos (sin autenticación)
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/inventario/**").permitAll()
                 .requestMatchers("/api/contact-messages").permitAll()
                 .requestMatchers("/purchase-orders/**").permitAll()
-                
+
                 // Endpoints protegidos (requieren JWT)
                 .requestMatchers("/api/cart/**").authenticated()
-                
+
                 // Cualquier otro endpoint requiere autenticación
                 .anyRequest().authenticated()
             )
@@ -54,7 +65,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
@@ -67,6 +78,20 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    // Temporal: Ignorar rutas de Swagger/OpenAPI para diagnóstico local
+    @Bean
+    public org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring().requestMatchers(
+                "/v3/api-docs",
+                "/v3/api-docs/**",
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/doc/**",
+                "/swagger-resources/**",
+                "/webjars/**"
+        );
     }
 
     @Bean
