@@ -24,7 +24,6 @@ public class CartItem {
     @ManyToOne(optional = false)
     private Inventario product;
 
-    // Snapshot fields to keep display/history if product changes or is removed
     private String productTitle;
 
     @Column(nullable = false, precision = 10, scale = 2)

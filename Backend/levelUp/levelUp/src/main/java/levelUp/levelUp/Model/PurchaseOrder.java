@@ -24,7 +24,7 @@ public class PurchaseOrder {
 	private Long id;
 
 	@ManyToOne
-	private User user; // nullable if anonymous orders are allowed
+	private User user; 
 
 	@OneToMany(mappedBy = "purchaseOrder", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonManagedReference

@@ -27,7 +27,7 @@ public class Cart {
     private Long id;
 
     @ManyToOne
-    private User user; // optional: null for guests if you choose to persist guest carts
+    private User user; 
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
