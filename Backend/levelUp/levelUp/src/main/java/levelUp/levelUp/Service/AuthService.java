@@ -65,8 +65,10 @@ public class AuthService {
         response.put("message", "Inicio de sesión exitoso");
         response.put("token", token);
         response.put("user", Map.of(
+            "id", user.getId(),
             "email", user.getEmail(),
-            "name", user.getName()
+            "name", user.getName(),
+            "role", user.getRole()
         ));
         return response;
     }
@@ -84,6 +86,14 @@ public class AuthService {
         user.setEmail(registerRequest.getEmail());
         // Encriptar contraseña con BCrypt
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        
+        // Asignar rol automáticamente
+        // Si es el email del administrador, asignar rol ADMIN, sino USER
+        if ("admin@levelup.com".equals(registerRequest.getEmail())) {
+            user.setRole("ADMIN");
+        } else {
+            user.setRole("USER");
+        }
 
         User savedUser = userRepository.save(user);
 
@@ -95,8 +105,10 @@ public class AuthService {
         response.put("message", "Registro exitoso");
         response.put("token", token);
         response.put("user", Map.of(
+            "id", savedUser.getId(),
             "email", savedUser.getEmail(),
-            "name", savedUser.getName()
+            "name", savedUser.getName(),
+            "role", savedUser.getRole()
         ));
         return response;
     }

@@ -24,6 +24,9 @@ public class User {
 
     @Column(nullable = false, unique = true)
     private String email;
+    
+    @Column(nullable = false)
+    private String role = "USER";
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)

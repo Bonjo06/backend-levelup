@@ -46,13 +46,21 @@ public class SecurityConfig {
                 // Rutas públicas (Swagger y Documentación)
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/doc/**").permitAll()
                 
-                // Rutas públicas de la API 
+                // ⭐ Rutas públicas de autenticación - PERMITIR TODO
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/inventario/**").permitAll()
+                
+                // Inventario: GET público, pero POST/PUT/DELETE solo para ADMIN
+                .requestMatchers(HttpMethod.GET, "/api/inventario/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/inventario/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/inventario/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/inventario/**").hasAuthority("ADMIN")
+                
+                // ⭐ Rutas públicas adicionales
                 .requestMatchers("/api/contact-messages").permitAll()
                 .requestMatchers("/purchase-orders/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/users/**").permitAll()
 
+                // ⭐ Cualquier otra ruta requiere autenticación
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

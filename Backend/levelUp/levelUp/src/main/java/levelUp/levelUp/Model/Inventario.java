@@ -19,11 +19,12 @@ public class Inventario {
 
     @Column(nullable = false)
     private String itemTitle;
+    
 
-    @Column(nullable = false)
+    @Column(nullable = true, columnDefinition = "TEXT")
     private String itemImageLink;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String itemCategory;
 
     @Column(nullable = false, columnDefinition = "TEXT")
