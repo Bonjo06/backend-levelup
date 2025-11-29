@@ -54,6 +54,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/inventario/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/inventario/**").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/inventario/**").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/contact-messages/**").permitAll()
                 
                 // ⭐ Rutas públicas adicionales
                 .requestMatchers("/api/contact-messages").permitAll()
